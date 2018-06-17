@@ -1,0 +1,14 @@
+about: A command-line curl replacement with a better UX
+args:
+  - METHOD:
+      help: The HTTP method to be used for the request (GET, POST, PUT, DELETE, ...).
+      long_help: |
+        The HTTP method to be used for the request (GET, POST, PUT, DELETE, ...).
+
+        This argument can be omitted in which case braze will use POST if there is
+        some data to be sent, otherwise GET\:
+
+          $ braze example.com          \# => GET
+          $ braze example.com foo=bar  \# => POST
+      required: true
+      index: 1

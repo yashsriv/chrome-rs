@@ -1,0 +1,24 @@
+[package]
+name = "braze"
+categories = ["command-line-utilities"]
+version = "0.1.0"
+authors = ["Yash Srivastav <yash111998@gmail.com>"]
+
+[dependencies]
+atty = "0.2.2"
+ansi_term = "0.10"
+console = "0.6"
+lazy_static = "1.0"
+hyper = "*"
+reqwest = "0.8.6"
+serde_json = "1.0"
+
+[dependencies.clap]
+version = "~2.31"
+default-features = true
+features = ["yaml"]
+
+[dependencies.error-chain]
+version = "0.11"
+default-features = false
+features = []
