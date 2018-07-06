@@ -1,6 +1,7 @@
 error_chain! {
     foreign_links {
         Clap(::clap::Error);
+        Http(::http::Error);
         Hyper(::hyper::Error);
         Reqwest(::reqwest::Error);
         ReqwestUrl(::reqwest::UrlError);

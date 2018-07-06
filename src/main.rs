@@ -13,6 +13,7 @@ extern crate lazy_static;
 extern crate ansi_term;
 extern crate atty;
 extern crate console;
+extern crate http;
 extern crate hyper;
 extern crate reqwest;
 extern crate serde_json;

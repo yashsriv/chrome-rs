@@ -108,6 +108,7 @@ impl App {
     fn method(&self) -> Result<Method> {
         let method = self.matches.value_of("METHOD").unwrap().to_uppercase();
         Method::from_str(method.as_str())
+            .map_err(::http::Error::from)
             .map_err(Error::from)
     }
 }
