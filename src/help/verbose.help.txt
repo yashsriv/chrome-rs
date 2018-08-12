@@ -1,0 +1,3 @@
+Verbose output. Print the whole request as well as the response. Also print
+any intermediary requests/responses (such as redirects).
+It's a shortcut for: --all --print={0}

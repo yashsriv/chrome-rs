@@ -24,10 +24,12 @@ pub struct Config {
     pub url: Url,
     // Formatting options, etc.
     pub colored_output: bool,
+    pub interactive_output: bool,
+    pub term_width: usize,
     pub true_color: bool,
+    pub verbose: bool,
     // pub output_wrap
     // pub paging_mode
-    pub term_width: usize,
 }
 
 impl App {
@@ -75,6 +77,12 @@ impl App {
                  .validator(is_request_item)
                  .index(3)
             )
+            .arg(Arg::with_name("verbose")
+                 .short("v")
+                 .long("verbose")
+                 .help("Verbose output")
+                 .long_help(include_str!("./help/verbose.help.txt"))
+            )
             .get_matches()
     }
 
@@ -87,8 +95,10 @@ impl App {
             url: Url::from_str(url)?,
             items: request_items,
             colored_output: self.interactive_output,
-            true_color: is_truecolor_terminal(),
+            interactive_output: self.interactive_output,
             term_width: Term::stdout().size().1 as usize,
+            true_color: is_truecolor_terminal(),
+            verbose: self.matches.is_present("verbose"),
         })
     }
 
