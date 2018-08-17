@@ -1,8 +1,7 @@
 use atty::{self, Stream};
 use clap::{App as ClapApp, AppSettings, Arg, ArgMatches};
 use console::Term;
-use errors::*;
-use reqwest::{Method, Url};
+use actix_web::http::Method;
 
 #[cfg(windows)]
 use ansi_term;
@@ -10,6 +9,7 @@ use ansi_term;
 use std::env;
 use std::str::FromStr;
 
+use errors::BrazeError;
 use request_item::{RequestItem, is_request_item, get_request_item};
 
 pub struct App {
@@ -21,7 +21,7 @@ pub struct Config {
     // Main stuff relating to the request to be made
     pub items: Vec<RequestItem>,
     pub method: Method,
-    pub url: Url,
+    pub url: String,
     // Formatting options, etc.
     pub colored_output: bool,
     pub interactive_output: bool,
@@ -86,13 +86,13 @@ impl App {
             .get_matches()
     }
 
-    pub fn config(&self) -> Result<Config> {
+    pub fn config(&self) -> Result<Config, BrazeError> {
         let url = self.matches.value_of("URL").unwrap();
         let request_items = self.request_items();
 
         Ok(Config {
             method: self.method()?,
-            url: Url::from_str(url)?,
+            url: String::from(url),
             items: request_items,
             colored_output: self.interactive_output,
             interactive_output: self.interactive_output,
@@ -115,11 +115,9 @@ impl App {
             .unwrap_or_else(|| vec![])
     }
 
-    fn method(&self) -> Result<Method> {
+    fn method(&self) -> Result<Method, BrazeError> {
         let method = self.matches.value_of("METHOD").unwrap().to_uppercase();
-        Method::from_str(method.as_str())
-            .map_err(::http::Error::from)
-            .map_err(Error::from)
+        Method::from_str(method.as_str()).map_err(BrazeError::from)
     }
 }
 

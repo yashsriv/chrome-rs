@@ -5,21 +5,20 @@ version = "0.1.0"
 authors = ["Yash Srivastav <yash111998@gmail.com>"]
 
 [dependencies]
+actix-web = { version = "^0.7.3", features=["alpn"] }
 atty = "0.2.2"
 ansi_term = "0.10"
+bytes = "*"
 console = "0.6"
+failure = "^0.1.2"
+failure_derive = "^0.1.2"
+futures = "0.1.23"
+http = "0.1.10"
 lazy_static = "1.0"
-http = "0.1.5"
-hyper = "0.12.7"
-reqwest = { git = "https://github.com/seanmonstar/reqwest" }
 serde_json = "1.0"
+url = "1.7.1"
 
 [dependencies.clap]
 version = "~2.31"
 default-features = true
 features = ["yaml"]
-
-[dependencies.error-chain]
-version = "0.12"
-default-features = false
-features = []

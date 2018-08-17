@@ -1,47 +1,55 @@
-use reqwest::{Client, RequestBuilder};
+use actix_web::client::{ ClientRequest, ClientRequestBuilder, ClientResponse };
+use futures::future::{ self, Future };
 use serde_json::{self, Value};
+use url::Url;
 
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 
 use cli::Config;
-use errors::*;
+use errors::BrazeError;
 use request_item::RequestItemType::*;
-use response::process_response;
 
-pub fn make_request(config: &Config) -> Result<bool> {
-    let client = Client::builder().build()?;
-    let req = client.request(config.method.clone(), config.url.clone());
-    let (body_string, req) = parse_request_items(config, req)?;
-    let request = req.build()?;
-    if config.verbose {
-        println!("{} {}", request.method().as_ref(), request.url().path());
-        for (key, value) in request.headers().iter() {
-            println!("{}: {}", key.as_str(), value.to_str().expect(""))
+pub fn make_request(config: &Config) -> Box<Future<Item = ClientResponse, Error = BrazeError>> {
+    let mut req_builder = ClientRequest::build();
+    req_builder
+        .method(config.method.clone());
+
+    match parse_request_items(config, req_builder) {
+        Err(e) => Box::new(future::err(e)),
+        Ok((body_string, request)) => {
+            if config.verbose {
+                println!("{} {} {:?}", request.method().as_ref(), request.uri().path(), request.version());
+                for (key, value) in request.headers().iter() {
+                    println!("{}: {}", key.as_str(), value.to_str().expect(""))
+                }
+                println!("");
+                println!("{}", body_string);
+                println!("");
+            }
+            Box::new(request.send().map_err(BrazeError::from))
         }
-        println!("");
-        println!("{}", body_string);
-        println!("");
     }
-    let response = client.execute(request)?;
-    process_response(config, response)
 }
 
-pub fn parse_request_items(config: &Config, mut req: RequestBuilder) -> Result<(String, RequestBuilder)> {
+pub fn parse_request_items(config: &Config, mut req: ClientRequestBuilder) -> Result<(String, ClientRequest), BrazeError> {
+
     // Process query params
     let query_params: Vec<(&String, &String)> = config.items.iter()
         .filter(|x| match x.variant { URLParameter => true, _ => false })
         .map(|x| (&x.key, &x.value))
         .collect();
-    req = req.query(&query_params);
+    let url = Url::parse_with_params(&config.url, &query_params)?;
 
-    // Process headers
+    req.uri(url.as_str());
+
+   // Process headers
     let headers = config.items.iter()
         .filter(|x| match x.variant { HTTPHeader => true, _ => false });
 
     for header in headers {
-        req = req.header(header.key.as_str(), header.value.as_str());
+        req.header(header.key.as_str(), header.value.as_str());
     }
 
     // Process body
@@ -69,9 +77,8 @@ pub fn parse_request_items(config: &Config, mut req: RequestBuilder) -> Result<(
                 map.insert(item.key.clone(), serde_json::from_reader(file)?);
             }
             FormFile => unimplemented!(),
-            _ => bail!("impossible scenarios")
+            _ => return Err(BrazeError::UnexpectedError),
         };
     }
-    req = req.json(&map);
-    Ok((serde_json::to_string_pretty(&map)?, req))
+    Ok((serde_json::to_string_pretty(&map)?, req.json(map)?))
 }

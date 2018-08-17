@@ -1,22 +1,17 @@
-// `error_chain!` can recurse deeply
-#![recursion_limit = "1024"]
+#[macro_use] extern crate clap;
+#[macro_use] extern crate failure_derive;
+#[macro_use] extern crate lazy_static;
 
-#[macro_use]
-extern crate error_chain;
-
-#[macro_use]
-extern crate clap;
-
-#[macro_use]
-extern crate lazy_static;
-
+extern crate actix_web;
 extern crate ansi_term;
 extern crate atty;
+extern crate bytes;
 extern crate console;
+extern crate failure;
+extern crate futures;
 extern crate http;
-extern crate hyper;
-extern crate reqwest;
 extern crate serde_json;
+extern crate url;
 
 mod cli;
 mod errors;
@@ -24,32 +19,37 @@ mod request;
 mod request_item;
 mod response;
 
+use actix_web::actix;
+use futures::future::Future;
+
 use std::process;
 
 use cli::App;
 use errors::*;
 use request::*;
+use response::*;
 
 /// Returns `Err(..)` upon fatal errors. Otherwise, returns `Some(true)` on full success and
 /// `Some(false)` if any intermediate errors occurred (were printed).
-fn run() -> Result<bool> {
-    let app = App::new();
-    let config = app.config()?;
-    make_request(&config)
-}
-
 fn main() {
-    let result = run();
-    match result {
-        Err(error) => {
-            handle_error(&error);
-            process::exit(1);
-        }
-        Ok(false) => {
-            process::exit(1);
-        }
-        Ok(true) => {
-            process::exit(0);
-        }
-    }
+    let app = App::new();
+    actix::run(move || {
+        let config = app.config().unwrap();
+        make_request(&config)
+            .and_then(move |response| {                     // <- server http response
+                process_response(&config, response)
+            })
+            .map(|v| {
+                actix::System::current().stop();
+                if v {
+                    process::exit(0);
+                }
+                process::exit(1);
+            })
+            .map_err(|e| {
+                handle_error(e);
+                actix::System::current().stop();
+                process::exit(1);
+            })
+    })
 }
