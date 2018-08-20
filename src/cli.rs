@@ -9,7 +9,7 @@ use ansi_term;
 use std::env;
 use std::str::FromStr;
 
-use errors::BrazeError;
+use errors::ChromeError;
 use request_item::{RequestItem, is_request_item, get_request_item};
 
 pub struct App {
@@ -86,7 +86,7 @@ impl App {
             .get_matches()
     }
 
-    pub fn config(&self) -> Result<Config, BrazeError> {
+    pub fn config(&self) -> Result<Config, ChromeError> {
         let url = self.matches.value_of("URL").unwrap();
         let request_items = self.request_items();
 
@@ -115,9 +115,9 @@ impl App {
             .unwrap_or_else(|| vec![])
     }
 
-    fn method(&self) -> Result<Method, BrazeError> {
+    fn method(&self) -> Result<Method, ChromeError> {
         let method = self.matches.value_of("METHOD").unwrap().to_uppercase();
-        Method::from_str(method.as_str()).map_err(BrazeError::from)
+        Method::from_str(method.as_str()).map_err(ChromeError::from)
     }
 }
 

@@ -6,10 +6,10 @@ use futures::Future;
 use serde_json::{to_string_pretty, from_slice, Value};
 
 use cli::Config;
-use errors::BrazeError;
+use errors::ChromeError;
 use output::*;
 
-pub fn process_response(config: &Config, res: ClientResponse) -> impl Future<Item = bool, Error = BrazeError> {
+pub fn process_response(config: &Config, res: ClientResponse) -> impl Future<Item = bool, Error = ChromeError> {
     let mut response_str = String::new();
     if config.interactive_output || config.verbose {
         let first_line = format!("{:?} {} {}\n", res.version(), res.status().as_u16(),
@@ -54,7 +54,7 @@ pub fn process_response(config: &Config, res: ClientResponse) -> impl Future<Ite
                 .or(
                     String::from_utf8(bytes.to_vec())
                         .map(|s| Body::Normal(s))
-                        .map_err(|_| BrazeError::UnexpectedError)
+                        .map_err(|_| ChromeError::UnexpectedError)
                 )
                 .map(|output| print_http(response_str, output, colored, true_color, only_body))
         })

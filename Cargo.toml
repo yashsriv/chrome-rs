@@ -1,5 +1,5 @@
 [package]
-name = "braze"
+name = "chrome"
 categories = ["command-line-utilities"]
 version = "0.1.0"
 authors = ["Yash Srivastav <yash111998@gmail.com>"]

@@ -8,7 +8,7 @@ use url;
 use std::io;
 
 #[derive(Debug, Fail)]
-pub enum BrazeError {
+pub enum ChromeError {
     #[fail(display = "ActixWebError: {}", error)]
     ActixWebError { error: actix_web::Error },
     #[fail(display = "Payload error: {}", error)]
@@ -25,53 +25,53 @@ pub enum BrazeError {
     UnexpectedError,
 }
 
-impl From<actix_web::Error> for BrazeError {
-    fn from(error: actix_web::Error) -> BrazeError {
-        BrazeError::ActixWebError { error: error }
+impl From<actix_web::Error> for ChromeError {
+    fn from(error: actix_web::Error) -> ChromeError {
+        ChromeError::ActixWebError { error: error }
     }
 }
 
-impl From<client::SendRequestError> for BrazeError {
-    fn from(error: client::SendRequestError) -> BrazeError {
-        BrazeError::SendRequestFailed { error: error }
+impl From<client::SendRequestError> for ChromeError {
+    fn from(error: client::SendRequestError) -> ChromeError {
+        ChromeError::SendRequestFailed { error: error }
     }
 }
 
-impl From<io::Error> for BrazeError {
-    fn from(error: io::Error) -> BrazeError {
-        BrazeError::IoError { error: error }
+impl From<io::Error> for ChromeError {
+    fn from(error: io::Error) -> ChromeError {
+        ChromeError::IoError { error: error }
     }
 }
 
-impl From<error::PayloadError> for BrazeError {
-    fn from(error: error::PayloadError) -> BrazeError {
-        BrazeError::BodyParseError { error: error }
+impl From<error::PayloadError> for ChromeError {
+    fn from(error: error::PayloadError) -> ChromeError {
+        ChromeError::BodyParseError { error: error }
     }
 }
 
-impl From<method::InvalidMethod> for BrazeError {
-    fn from(error: method::InvalidMethod) -> BrazeError {
-        BrazeError::MethodParseError { error: error }
+impl From<method::InvalidMethod> for ChromeError {
+    fn from(error: method::InvalidMethod) -> ChromeError {
+        ChromeError::MethodParseError { error: error }
     }
 }
 
-impl From<url::ParseError> for BrazeError {
-    fn from(error: url::ParseError) -> BrazeError {
-        BrazeError::UrlParseError { error: error }
+impl From<url::ParseError> for ChromeError {
+    fn from(error: url::ParseError) -> ChromeError {
+        ChromeError::UrlParseError { error: error }
     }
 }
 
-impl From<serde_json::Error> for BrazeError {
-    fn from(_error: serde_json::Error) -> BrazeError {
-        BrazeError::UnexpectedError
+impl From<serde_json::Error> for ChromeError {
+    fn from(_error: serde_json::Error) -> ChromeError {
+        ChromeError::UnexpectedError
     }
 }
 
-pub fn handle_error(error: BrazeError) -> BrazeError {
+pub fn handle_error(error: ChromeError) -> ChromeError {
     match error {
         _ => {
             use ansi_term::Colour::Red;
-            eprintln!("{}: {}", Red.paint("[braze error]"), error);
+            eprintln!("{}: {}", Red.paint("[chrome error]"), error);
             error
         }
     }

@@ -10,12 +10,12 @@ used determines the type:
 
   '==' URL parameters to be appended to the request URI:
 
-    q==braze
+    q==chrome
 
   '=' Data fields to be serialized into a JSON object (with --json, -j)
       or form data (with --form, -f):
 
-    name=braze  language=rust  description=\"CLI http client\"
+    name=chrome  language=rust  description=\"CLI http client\"
 
   ':=' Non-string JSON data fields (only with --json, -j):
 

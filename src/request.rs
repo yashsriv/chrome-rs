@@ -8,13 +8,14 @@ use std::fs::File;
 use std::io::Read;
 
 use cli::Config;
-use errors::BrazeError;
+use errors::ChromeError;
 use request_item::RequestItemType::*;
 use output::*;
 
-pub fn make_request(config: &Config) -> Box<Future<Item = ClientResponse, Error = BrazeError>> {
+pub fn make_request(config: &Config) -> Box<Future<Item = ClientResponse, Error = ChromeError>> {
     let mut req_builder = ClientRequest::build();
     req_builder
+        .header("User-Agent", format!("{}/{}", crate_name!(), crate_version!()))
         .method(config.method.clone());
 
     match parse_request_items(config, req_builder) {
@@ -38,12 +39,12 @@ pub fn make_request(config: &Config) -> Box<Future<Item = ClientResponse, Error 
                     };
                 print_http(request_str, body, config.colored_output, config.true_color, false);
             }
-            Box::new(request.send().map_err(BrazeError::from))
+            Box::new(request.send().map_err(ChromeError::from))
         }
     }
 }
 
-pub fn parse_request_items(config: &Config, mut req: ClientRequestBuilder) -> Result<(String, ClientRequest), BrazeError> {
+pub fn parse_request_items(config: &Config, mut req: ClientRequestBuilder) -> Result<(String, ClientRequest), ChromeError> {
 
     // Process query params
     let query_params: Vec<(&String, &String)> = config.items.iter()
@@ -87,7 +88,7 @@ pub fn parse_request_items(config: &Config, mut req: ClientRequestBuilder) -> Re
                 map.insert(item.key.clone(), serde_json::from_reader(file)?);
             }
             FormFile => unimplemented!(),
-            _ => return Err(BrazeError::UnexpectedError),
+            _ => return Err(ChromeError::UnexpectedError),
         };
     }
     Ok((serde_json::to_string_pretty(&map)?, req.json(map)?))

@@ -4,5 +4,5 @@ The scheme defaults to 'http://' if the url does not include one.
 
 You can also use a shorthand for localhost
 
-  $ braze :3000                # => http://localhost:3000
-  $ braze :/foo                # => http://localhost/foo
+  $ chrome :3000                # => http://localhost:3000
+  $ chrome :/foo                # => http://localhost/foo
