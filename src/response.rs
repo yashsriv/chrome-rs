@@ -53,7 +53,7 @@ pub fn process_response(config: &Config, res: ClientResponse) -> impl Future<Ite
                 })
                 .or(
                     String::from_utf8(bytes.to_vec())
-                        .map(|s| Body::Normal(s))
+                        .map(|s| Body::Form(s))
                         .map_err(|_| ChromeError::UnexpectedError)
                 )
                 .map(|output| print_http(response_str, output, colored, true_color, only_body))

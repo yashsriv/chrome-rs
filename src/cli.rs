@@ -1,7 +1,10 @@
+use actix_web::http::Method;
 use atty::{self, Stream};
 use clap::{App as ClapApp, AppSettings, Arg, ArgMatches};
 use console::Term;
-use actix_web::http::Method;
+use syntect::highlighting::ThemeSet;
+use syntect::parsing::SyntaxSet;
+use syntect::parsing::syntax_definition::SyntaxDefinition;
 
 #[cfg(windows)]
 use ansi_term;
@@ -10,7 +13,10 @@ use std::env;
 use std::str::FromStr;
 
 use errors::ChromeError;
+use request::BodyType;
 use request_item::{RequestItem, is_request_item, get_request_item};
+
+static NEW_LINES: bool = false;
 
 pub struct App {
     pub matches: ArgMatches<'static>,
@@ -28,6 +34,9 @@ pub struct Config {
     pub term_width: usize,
     pub true_color: bool,
     pub verbose: bool,
+    pub body_type: BodyType,
+    pub syntax_set: SyntaxSet,
+    pub theme_set: ThemeSet,
     // pub output_wrap
     // pub paging_mode
 }
@@ -83,22 +92,43 @@ impl App {
                  .help("Verbose output")
                  .long_help(include_str!("./help/verbose.help.txt"))
             )
+            .arg(Arg::with_name("json")
+                 .short("j")
+                 .long("json")
+                 .help("Force json for request arguments")
+            )
+            .arg(Arg::with_name("form")
+                 .short("f")
+                 .long("form")
+                 .help("Force sending as form for request arguments")
+                 .conflicts_with("json")
+            )
             .get_matches()
     }
 
     pub fn config(&self) -> Result<Config, ChromeError> {
         let url = self.matches.value_of("URL").unwrap();
         let request_items = self.request_items();
+        let body_type = if self.matches.is_present("json") {
+            BodyType::JSON
+        } else if self.matches.is_present("form") {
+            BodyType::Form
+        } else {
+            BodyType::Undecided
+        };
 
         Ok(Config {
             method: self.method()?,
             url: String::from(url),
             items: request_items,
+            body_type: body_type,
             colored_output: self.interactive_output,
             interactive_output: self.interactive_output,
             term_width: Term::stdout().size().1 as usize,
             true_color: is_truecolor_terminal(),
             verbose: self.matches.is_present("verbose"),
+            syntax_set: get_syntax_set(),
+            theme_set: get_theme_set(),
         })
     }
 
@@ -125,4 +155,25 @@ fn is_truecolor_terminal() -> bool {
     env::var("COLORTERM")
         .map(|colorterm| colorterm == "truecolor" || colorterm == "24bit")
         .unwrap_or(false)
+}
+
+pub fn get_syntax_set() -> SyntaxSet {
+    let http_def: SyntaxDefinition = SyntaxDefinition::load_from_str(
+        include_str!("./http.sublime-syntax"),
+        NEW_LINES,
+        Some("HTTP")
+    ).expect("Unable to parse http sublime syntax");
+
+    let mut ss = if NEW_LINES {
+        SyntaxSet::load_defaults_newlines()
+    } else {
+        SyntaxSet::load_defaults_nonewlines()
+    };
+    ss.add_syntax(http_def);
+    ss.link_syntaxes();
+    ss
+}
+
+pub fn get_theme_set() -> ThemeSet {
+    ThemeSet::load_defaults()
 }

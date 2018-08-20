@@ -3,6 +3,7 @@ use actix_web::client;
 use actix_web::error;
 use http::method;
 use serde_json;
+use serde_urlencoded;
 use url;
 
 use std::io;
@@ -63,6 +64,12 @@ impl From<url::ParseError> for ChromeError {
 
 impl From<serde_json::Error> for ChromeError {
     fn from(_error: serde_json::Error) -> ChromeError {
+        ChromeError::UnexpectedError
+    }
+}
+
+impl From<serde_urlencoded::ser::Error> for ChromeError {
+    fn from(_error: serde_urlencoded::ser::Error) -> ChromeError {
         ChromeError::UnexpectedError
     }
 }

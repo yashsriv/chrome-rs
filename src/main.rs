@@ -11,6 +11,7 @@ extern crate failure;
 extern crate futures;
 extern crate http;
 extern crate serde_json;
+extern crate serde_urlencoded;
 extern crate syntect;
 extern crate url;
 
