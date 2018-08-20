@@ -1,0 +1,29 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+name: HTTP
+file_extensions:
+  - http
+scope: text.html.basic
+
+contexts:
+  main:
+    - match: "([A-Z]+) +([^ ]+) +(HTTP)(/)(\\d+\\.\\d+)"
+      captures:
+        1: variable.language           # Method
+        2: entity.name.class           # PathAndQuery
+        3: keyword                     # HTTP
+        4: keyword.operator.assignment # /
+        5: constant.numeric            # Version
+    - match: "(HTTP)(/)(\\d+\\.\\d+) +(\\d{3}) +(.+)"
+      captures:
+        1: keyword                      # HTTP
+        2: keyword.operator.assignment  # /
+        3: constant.numeric             # Version
+        4: constant.numeric             # Status Code
+        5: support.type.exception       # Reason
+    - match: "(.*?) *(:) *(.+)"
+      captures:
+        1: entity.other.attribute-name
+        2: keyword.operator.assignment
+        3: string

@@ -11,6 +11,7 @@ extern crate failure;
 extern crate futures;
 extern crate http;
 extern crate serde_json;
+extern crate syntect;
 extern crate url;
 
 mod cli;
@@ -18,6 +19,7 @@ mod errors;
 mod request;
 mod request_item;
 mod response;
+mod output;
 
 use actix_web::actix;
 use futures::future::Future;

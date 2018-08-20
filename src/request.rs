@@ -10,6 +10,7 @@ use std::io::Read;
 use cli::Config;
 use errors::BrazeError;
 use request_item::RequestItemType::*;
+use output::*;
 
 pub fn make_request(config: &Config) -> Box<Future<Item = ClientResponse, Error = BrazeError>> {
     let mut req_builder = ClientRequest::build();
@@ -20,13 +21,22 @@ pub fn make_request(config: &Config) -> Box<Future<Item = ClientResponse, Error 
         Err(e) => Box::new(future::err(e)),
         Ok((body_string, request)) => {
             if config.verbose {
-                println!("{} {} {:?}", request.method().as_ref(), request.uri().path(), request.version());
+                let mut request_str = String::new();
+                let first_line = format!("{} {}{}{} {:?}\n", request.method().as_ref(), request.uri().path(),
+                         request.uri().query().map(|_| "?").unwrap_or(""), request.uri().query().unwrap_or(""),
+                         request.version());
+                request_str.push_str(&first_line);
                 for (key, value) in request.headers().iter() {
-                    println!("{}: {}", key.as_str(), value.to_str().expect(""))
+                    let headerval_pair = format!("{}: {}\n", key.as_str(), value.to_str().expect(""));
+                    request_str.push_str(&headerval_pair);
                 }
-                println!("");
-                println!("{}", body_string);
-                println!("");
+                let body = if body_string != String::from("") &&
+                    body_string != String::from("{}") {
+                        Body::Normal(format!("{}", body_string))
+                    } else {
+                        Body:: Empty
+                    };
+                print_http(request_str, body, config.colored_output, config.true_color, false);
             }
             Box::new(request.send().map_err(BrazeError::from))
         }
